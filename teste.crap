@@ -1,0 +1,48 @@
+let x as u64 = (x + y * (k[x+3] * ajdksd[3/(3+3)])) + (log+(3/3))
+
+let teste as u8 = 30
+
+if x == 2 and y != 4 then
+	x = x + 1 as u64
+else
+	x = x - 1
+end
+
+for i in 0 to 10 do
+	print i
+end
+
+if (x == 2 and y >= 1) and (y <=3) then
+	for i in 0 to 10 do
+		print i
+		x = read 
+		let z as [u32 30] = 1
+		z[i+x] = y + z[0]
+		#x x + 3
+		when z[i+x] != 3 do
+			loop 30 times
+   				z[i] = 0 #if loop as 
+			end
+		end
+	
+	end
+else
+	print x
+end
+
+let x as [u8 3] = 0
+
+for i in 0 to 30 do
+    x[i] =! i
+end
+
+let y as [u8 3] = "par"
+let x as [u8 5] = "impar"
+
+for i in 0 to 30 do
+    if i % 2 then
+        print y
+    else
+        print x 
+    end
+end

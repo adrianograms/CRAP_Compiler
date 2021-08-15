@@ -1,0 +1,5 @@
+Para rodar: python main.py <nome_do_arquivo> <flags>
+<nome_do_arquivo> - nome de arquivo que será processado
+<flags> -pl mostra os tokens e lexemas gerados pelo processador lexico
+
+Exemplo de execução: python main.py teste.CRAP -pl
