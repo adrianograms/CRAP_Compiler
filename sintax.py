@@ -1,4 +1,17 @@
 
+from pprint import pprint
+
+def print_list(buffer, tabs):
+    if type(buffer) == list and len(buffer) > 1:
+        tabs = tabs +  1
+        for i in buffer:
+            print_list(i, tabs)
+    else:
+        for i in range(tabs):
+            print(end='\t')
+        print(buffer)
+
+
 def token_to_number(argument):
     switcher = {
         "invalid": -1,
@@ -146,11 +159,62 @@ def print_section(name):
 def reduction(f, buffer, matrix):
     aux = f[1]
     pops = int(f[2:])
+    inside = []
+    if (aux == 'R' or aux == 'R' or aux == 'L' or aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'B' or aux =='E' or aux == 'D' or aux == 'A') and pops == 1:
+        #print(buffer[len(buffer)-2])
+        inside.append(buffer[len(buffer)-2])
+    elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'F') and pops == 3:
+        inside.append(buffer[-6])
+        inside.append(buffer[-4])
+        inside.append(buffer[-2])
+    elif aux == 'M':
+        inside.append(buffer[-16])
+        inside.append(buffer[-10])
+        inside.append(buffer[-4])
+    elif aux == 'N':
+        inside.append(buffer[-10])
+        inside.append(buffer[-4])
+    elif aux == 'O':
+        inside.append(buffer[-18])
+        inside.append(buffer[-14])
+        inside.append(buffer[-10])
+        inside.append(buffer[-4])
+    elif aux == 'P':
+        inside.append(buffer[-10])
+        inside.append(buffer[-4])
+    elif aux == 'Q':
+        inside.append(buffer[-6])
+        inside.append(buffer[-2])
+    elif aux == 'T' and pops == 3:
+        inside.append(buffer[-6])
+        inside.append(buffer[-2])
+    elif aux == 'T' and pops == 5:
+        inside.append(buffer[-10])
+        inside.append(buffer[-6])
+        inside.append(buffer[-2])
+    elif aux == 'U':
+        inside.append(buffer[-8])
+        inside.append(buffer[-4])
+    elif aux == 'F' and pops == 2:
+        inside.append(buffer[-4])
+    elif aux == 'C':
+        inside.append(buffer[-6])
+        inside.append(buffer[-4])
+    elif aux == 'L' and pops == 2:
+        inside.append(buffer[-2])
+    elif aux == 'L' and pops == 3 and buffer[-6][2] == '(':
+        inside.append(buffer[-4])
+    elif aux == 'L' and pops == 3:
+        inside.append(buffer[-4])
+        inside.append(buffer[-2])
+    #if aux == 'Y':
+        #pprint(buffer)
     for i in range(pops*2):
         buffer.pop(len(buffer)-1)
     row = buffer[-1]
-    buffer.append(aux)
-    column = letter_to_number(buffer[-1]) + 34
+    inside.append(aux)
+    buffer.append(inside)
+    column = letter_to_number(buffer[-1][-1]) + 34
     if matrix[row][column] == '':
         print_section("Erro grave!")
         return
@@ -211,6 +275,8 @@ def sintax(tokens):
                 if error >= 1:
                     print_section("Falha na sintaxe da linguagem!")
                 else:
+                    pprint(buffer)
+                    print(len(buffer))
                     print_section("Sintaxe Correta!")
                 return
                     
