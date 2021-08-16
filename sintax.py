@@ -11,6 +11,18 @@ def print_list(buffer, tabs):
             print(end='\t')
         print(buffer)
 
+def creating_tree(buffer, number, above):
+    if type(buffer[-1]) == str and buffer[-1] != 'Y' and buffer[-1] != 'V':
+        print("hello")
+        number += 1
+        print(above, number,'->',buffer[-1], number+1)
+        creating_tree(buffer[-2], number, buffer[-1])
+        if len(buffer) > 2:
+            for i in range(len(buffer)-2):
+                creating_tree(buffer[i], number, buffer[-1])
+    else:
+        print(buffer)
+
 
 def token_to_number(argument):
     switcher = {
@@ -160,10 +172,15 @@ def reduction(f, buffer, matrix):
     aux = f[1]
     pops = int(f[2:])
     inside = []
-    if (aux == 'R' or aux == 'R' or aux == 'L' or aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'B' or aux =='E' or aux == 'D' or aux == 'A') and pops == 1:
-        #print(buffer[len(buffer)-2])
-        inside.append(buffer[len(buffer)-2])
-    elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'F') and pops == 3:
+    if (aux == 'R' or aux == 'L' or aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'B' or aux =='E' or aux == 'D' or aux == 'A') and pops == 1:
+        # print(buffer[len(buffer)-2])
+        # content = buffer[-2]
+        # if aux == 'R' or aux == 'L' or aux == 'B':
+        #     if type(content[-1]) == str:
+        #         content = content.pop(-1)
+        # inside.append(content)
+        inside.append(buffer[-2])
+    elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G') and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
@@ -186,8 +203,10 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-6])
         inside.append(buffer[-2])
     elif aux == 'T' and pops == 3:
+        # inside = buffer[-6]
         inside.append(buffer[-6])
         inside.append(buffer[-2])
+        # print(inside[0], "=", inside[1])
     elif aux == 'T' and pops == 5:
         inside.append(buffer[-10])
         inside.append(buffer[-6])
@@ -197,16 +216,24 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-4])
     elif aux == 'F' and pops == 2:
         inside.append(buffer[-4])
+    elif aux == 'F' and pops == 3:
+        inside.append(buffer[-2])
+        inside.append(buffer[-6])
     elif aux == 'C':
         inside.append(buffer[-6])
         inside.append(buffer[-4])
     elif aux == 'L' and pops == 2:
         inside.append(buffer[-2])
-    elif aux == 'L' and pops == 3 and buffer[-6][2] == '(':
+    elif aux == 'L' and pops == 3 and buffer[-2][1] == ')':
         inside.append(buffer[-4])
     elif aux == 'L' and pops == 3:
         inside.append(buffer[-4])
         inside.append(buffer[-2])
+
+    # for i in inside:
+    #     if type(i) != str and type(i[-1]) == str:
+    #         i.pop(-1) 
+
     #if aux == 'Y':
         #pprint(buffer)
     for i in range(pops*2):
@@ -277,6 +304,8 @@ def sintax(tokens):
                 else:
                     pprint(buffer)
                     print(len(buffer))
+                    creating_tree(buffer[-2],0,'Z')
+                    # pprint(buffer[-2])
                     print_section("Sintaxe Correta!")
                 return
                     
