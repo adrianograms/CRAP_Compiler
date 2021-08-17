@@ -1,6 +1,9 @@
 
 from pprint import pprint
 
+count = 0
+
+
 def print_list(buffer, tabs):
     if type(buffer) == list and len(buffer) > 1:
         tabs = tabs +  1
@@ -11,17 +14,19 @@ def print_list(buffer, tabs):
             print(end='\t')
         print(buffer)
 
-def creating_tree(buffer, number, above):
-    if type(buffer[-1]) == str and buffer[-1] != 'Y' and buffer[-1] != 'V':
-        print("hello")
-        number += 1
-        print(above, number,'->',buffer[-1], number+1)
-        creating_tree(buffer[-2], number, buffer[-1])
+def creating_tree(buffer, above):
+    if type(buffer[-1]) == str and buffer[-1] != 'V':
+        global count
+        count += 1
+        buffer[-1] += str(count)
+        print(above,' -> ',buffer[-1], sep='')
+        creating_tree(buffer[-2], buffer[-1])
         if len(buffer) > 2:
             for i in range(len(buffer)-2):
-                creating_tree(buffer[i], number, buffer[-1])
-    else:
-        print(buffer)
+                creating_tree(buffer[i], buffer[-1])
+    elif buffer[-1] != 'V':
+        print(above, ' -> ', '"', buffer[1],'-' , count, '"', sep='')
+
 
 
 def token_to_number(argument):
@@ -229,6 +234,8 @@ def reduction(f, buffer, matrix):
     elif aux == 'L' and pops == 3:
         inside.append(buffer[-4])
         inside.append(buffer[-2])
+    elif aux == 'Y':
+        inside.append(buffer[-2])
 
     # for i in inside:
     #     if type(i) != str and type(i[-1]) == str:
@@ -304,7 +311,7 @@ def sintax(tokens):
                 else:
                     pprint(buffer)
                     print(len(buffer))
-                    creating_tree(buffer[-2],0,'Z')
+                    creating_tree(buffer[-2],'Z')
                     # pprint(buffer[-2])
                     print_section("Sintaxe Correta!")
                 return
