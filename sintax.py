@@ -2,6 +2,7 @@
 from pprint import pprint
 
 count = 0
+arguments = []
 
 
 def print_list(buffer, tabs):
@@ -174,6 +175,7 @@ def print_section(name):
     print('\n')
 
 def reduction(f, buffer, matrix):
+    global arguments
     aux = f[1]
     pops = int(f[2:])
     inside = []
@@ -185,10 +187,13 @@ def reduction(f, buffer, matrix):
         #         content = content.pop(-1)
         # inside.append(content)
         inside.append(buffer[-2])
+        print(inside[0])
+        arguments.append(inside[0])
     elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G') and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
+        #print(inside[0], "opr =", inside[1], inside[2])
     elif aux == 'M':
         inside.append(buffer[-16])
         inside.append(buffer[-10])
@@ -201,6 +206,7 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-14])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
+        #print(inside[-1])
     elif aux == 'P':
         inside.append(buffer[-10])
         inside.append(buffer[-4])
@@ -313,6 +319,7 @@ def sintax(tokens):
                     print(len(buffer))
                     creating_tree(buffer[-2],'Z')
                     # pprint(buffer[-2])
+                    print(arguments)
                     print_section("Sintaxe Correta!")
                 return
                     
