@@ -3,6 +3,8 @@ from pprint import pprint
 
 count = 0
 arguments = []
+count_args = 0
+file_tree = open("tree.txt", "w")
 
 
 def print_list(buffer, tabs):
@@ -18,15 +20,30 @@ def print_list(buffer, tabs):
 def creating_tree(buffer, above):
     if type(buffer[-1]) == str and buffer[-1] != 'V':
         global count
+        global count_args
+        global file_tree
         count += 1
-        buffer[-1] += str(count)
-        print(above,' -> ',buffer[-1], sep='')
+        label = letter_to_symbol(buffer[-1])
+        buffer[-1] =  letter_to_symbol(buffer[-1]) + str(count)
+        text = '"' + buffer[-1] + '"' + ' ' +  '[label="' + label + '"]' + '\n'
+        file_tree.write(text)
+        text = '"' + above + '"' + ' -> ' + '"' + buffer[-1] + '"' + '\n'
+        file_tree.write(text)
+        print('"' + buffer[-1] + '"', '[label="' + label + '"]')
+        print('"' + above + '"',' -> ','"' + buffer[-1] + '"', sep='')
         creating_tree(buffer[-2], buffer[-1])
         if len(buffer) > 2:
             for i in range(len(buffer)-2):
                 creating_tree(buffer[i], buffer[-1])
     elif buffer[-1] != 'V':
-        print(above, ' -> ', '"', buffer[1],'-' , count, '"', sep='')
+        count_args += 1
+        label = str(buffer[1])
+        text = '"' + buffer[1] +'-' + str(count_args) + '"' + ' ' + '[label="' + label + '"]' + '\n'
+        file_tree.write(text)
+        text = '"' + above + '"' + ' -> ' + '"' + buffer[1] +'-'  + str(count_args) + '"' + '\n'
+        file_tree.write(text)
+        print('"' + buffer[1] +'-' + str(count_args) + '"', '[label="' + label + '"]')
+        print('"' + above + '"', ' -> ', '"', buffer[1],'-' , count_args, '"', sep='')
 
 
 
@@ -138,6 +155,33 @@ def letter_to_number(letter):
     }
     return switcher.get(letter)
 
+def letter_to_symbol(letter):
+    switcher = {
+        "A": "<global>",
+        "B": "<numeric>",
+        "C": "<array>",
+        "D": "<type>",
+        "E": "<expression>",
+        "F": "<expressions>",
+        "G": "<bool_expr>",
+        "H": "<rela_expr>",
+        "I": "<math_expr>",
+        "J": "<expr>",
+        "K": "<term>",
+        "L": "<factor>",
+        "M": "<if>",
+        "N": "<when>",
+        "O": "<for>",
+        "P": "<loop>",
+        "Q": "<let>",
+        "R": "<assignable>",
+        "T": "<assignment>",
+        "U": "<array_index>",
+        "V": "<read>",
+        "Y": "<print>"
+    }
+    return switcher.get(letter)
+
 error_list = [ "ed", "ed", "erA1", "ep21", "erE1", "erE1", "erE1", "erE1", "erE1", "erE1", "ed", "ed",
             "ed", "ed", "ed", "ep10", "erR1", "erR1", "erR1", "ed", "erF2", "erY2", "erG1", "erH1",
             "erI1", "erJ1", "erK1", "ed", "erL1", "erL1", "erL1", "ed", "ed", "erL1", "ed", "erB1",
@@ -216,6 +260,7 @@ def reduction(f, buffer, matrix):
     elif aux == 'T' and pops == 3:
         # inside = buffer[-6]
         inside.append(buffer[-6])
+        inside.append(buffer[-4])
         inside.append(buffer[-2])
         # print(inside[0], "=", inside[1])
     elif aux == 'T' and pops == 5:
@@ -315,9 +360,11 @@ def sintax(tokens):
                 if error >= 1:
                     print_section("Falha na sintaxe da linguagem!")
                 else:
+                    global file_tree
                     pprint(buffer)
                     print(len(buffer))
                     creating_tree(buffer[-2],'Z')
+                    file_tree.close()
                     # pprint(buffer[-2])
                     print(arguments)
                     print_section("Sintaxe Correta!")
