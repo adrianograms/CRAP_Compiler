@@ -18,32 +18,35 @@ def print_list(buffer, tabs):
         print(buffer)
 
 def creating_tree(buffer, above):
-    if type(buffer[-1]) == str and buffer[-1] != 'V':
+    if type(buffer[-1]) == str:
         global count
         global count_args
         global file_tree
         count += 1
-        label = letter_to_symbol(buffer[-1])
-        buffer[-1] =  letter_to_symbol(buffer[-1]) + str(count)
-        text = '"' + buffer[-1] + '"' + ' ' +  '[label="' + label + '"]' + '\n'
+        label = '"%s"' % letter_to_symbol(buffer[-1]) 
+        buffer[-1] = '"%s"' %  (letter_to_symbol(buffer[-1]) + str(count))
+
+        text = '%s [label=%s]\n' % (buffer[-1],label) 
         file_tree.write(text)
-        text = '"' + above + '"' + ' -> ' + '"' + buffer[-1] + '"' + '\n'
+        text = '%s -> %s\n' % (above, buffer[-1])
         file_tree.write(text)
-        print('"' + buffer[-1] + '"', '[label="' + label + '"]')
-        print('"' + above + '"',' -> ','"' + buffer[-1] + '"', sep='')
+
         creating_tree(buffer[-2], buffer[-1])
+
         if len(buffer) > 2:
             for i in range(len(buffer)-2):
                 creating_tree(buffer[i], buffer[-1])
-    elif buffer[-1] != 'V':
+    else:
         count_args += 1
+
         label = str(buffer[1])
-        text = '"' + buffer[1] +'-' + str(count_args) + '"' + ' ' + '[label="' + label + '"]' + '\n'
+        identifier = '"%s"' % (label + str(count_args))
+        label = '"%s"' % label
+
+        text = '%s [label=%s]\n' % (identifier, label)
         file_tree.write(text)
-        text = '"' + above + '"' + ' -> ' + '"' + buffer[1] +'-'  + str(count_args) + '"' + '\n'
+        text = '%s -> %s\n' % (above, identifier)
         file_tree.write(text)
-        print('"' + buffer[1] +'-' + str(count_args) + '"', '[label="' + label + '"]')
-        print('"' + above + '"', ' -> ', '"', buffer[1],'-' , count_args, '"', sep='')
 
 
 
@@ -286,6 +289,8 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-4])
         inside.append(buffer[-2])
     elif aux == 'Y':
+        inside.append(buffer[-2])
+    elif aux == 'V':
         inside.append(buffer[-2])
 
     # for i in inside:
