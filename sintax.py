@@ -3,9 +3,16 @@ from pprint import pprint
 
 count = 0
 arguments = []
+arguments_tree = []
 count_args = 0
 file_tree = open("tree.txt", "w")
+variables = []
 
+class Variable:
+    def __repr__(self):
+        return str(self.__dict__)
+    def __str__(self):
+        return str(self.__dict__)
 
 def print_list(buffer, tabs):
     if type(buffer) == list and len(buffer) > 1:
@@ -221,8 +228,32 @@ def print_section(name):
     print(separator)
     print('\n')
 
+
+def create_node(buffer, letter, pops):
+    global arguments_tree
+    inside = []
+    if(letter in 'RLKJIHGBEDA') and pops == 1:
+        inside.append(buffer[-2])
+    elif (letter in 'KJIHG') and pops == 3:
+        inside.append(buffer[-6])
+        inside.append(buffer[-4])
+        inside.append(buffer[-2])
+
+        combine = arguments_tree[-3:]
+        for i in range(3):
+            arguments_tree.pop(-1)
+        arguments_tree.append(combine)
+    elif letter == 'M':
+        inside.append(buffer[-16])
+        inside.append(buffer[-10])
+        inside.append(buffer[-4])
+
+
+
 def reduction(f, buffer, matrix):
     global arguments
+    global arguments_tree
+    global variables
     aux = f[1]
     pops = int(f[2:])
     inside = []
@@ -234,13 +265,16 @@ def reduction(f, buffer, matrix):
         #         content = content.pop(-1)
         # inside.append(content)
         inside.append(buffer[-2])
-        print(inside[0])
         arguments.append(inside[0])
     elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G') and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
-        #print(inside[0], "opr =", inside[1], inside[2])
+        combine = arguments_tree[-3:]
+        for i in range(3):
+            arguments_tree.pop(-1)
+        arguments_tree.append(combine)
+        #print(combine)
     elif aux == 'M':
         inside.append(buffer[-16])
         inside.append(buffer[-10])
@@ -253,19 +287,31 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-14])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
-        #print(inside[-1])
     elif aux == 'P':
         inside.append(buffer[-10])
         inside.append(buffer[-4])
     elif aux == 'Q':
         inside.append(buffer[-6])
         inside.append(buffer[-2])
+        combine = arguments_tree[-2:]
+        for i in range(2):
+            arguments_tree.pop(-1)
+        arguments_tree.append(combine)
+        v = Variable()
+        if(combine[1][0] == 35):
+            v.type = 'arr'
+            v.inside_type = combine[1][1][1]
+            v.number = combine[1][2][1]
+        else:
+            v.type = combine[1][1]
+        v.name = combine[0][1]
+        print(v)
+        variables.append(v)
+        print(variables)
     elif aux == 'T' and pops == 3:
-        # inside = buffer[-6]
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
-        # print(inside[0], "=", inside[1])
     elif aux == 'T' and pops == 5:
         inside.append(buffer[-10])
         inside.append(buffer[-6])
@@ -281,6 +327,11 @@ def reduction(f, buffer, matrix):
     elif aux == 'C':
         inside.append(buffer[-6])
         inside.append(buffer[-4])
+        combine = [35]
+        combine.extend(arguments_tree[-2:])
+        for i in range(2):
+            arguments_tree.pop(-1)
+        arguments_tree.append(combine)
     elif aux == 'L' and pops == 2:
         inside.append(buffer[-2])
     elif aux == 'L' and pops == 3 and buffer[-2][1] == ')':
@@ -311,6 +362,7 @@ def reduction(f, buffer, matrix):
     buffer.append(int(matrix[row][column]))
 
 def sintax(tokens):
+    global arguments_tree
     matrix = read_txt("tabela.txt")
     buffer = [0]
     #print(tokens)
@@ -356,6 +408,9 @@ def sintax(tokens):
                     f_aux = codigo[1:]
                     reduction(f_aux, buffer, matrix)
             elif f[0] == 's':
+                valid_value = [5,6,11,13,17,19,20,22,25,26,27,28,32]
+                if(line[0][0] in valid_value):
+                    arguments_tree.append(line[0])
                 buffer.append(line[0])
                 line.pop(0)
                 buffer.append(int(f[1:]))
@@ -366,12 +421,12 @@ def sintax(tokens):
                     print_section("Falha na sintaxe da linguagem!")
                 else:
                     global file_tree
-                    pprint(buffer)
-                    print(len(buffer))
-                    creating_tree(buffer[-2],'Z')
+                    #pprint(buffer)
+                    #print(len(buffer))
+                    #creating_tree(buffer[-2],'Z')
                     file_tree.close()
                     # pprint(buffer[-2])
-                    print(arguments)
+                    #print(arguments_tree)
                     print_section("Sintaxe Correta!")
                 return
                     
