@@ -94,7 +94,18 @@ def token_to_number(argument):
         "to": 31,
         "type": 32,
         "when": 33,
-        "$": 34
+        "$": 34,
+        "i8": 35,
+        "i16": 36,
+        "i32": 37,
+        "i64": 38,
+        "u8": 39,
+        "u16": 40,
+        "u32": 41,
+        "u64": 42,
+        "f32": 43,
+        "f64": 44,
+        "generic": 45
     }
     return switcher.get(argument,-1)
 
@@ -229,26 +240,64 @@ def print_section(name):
     print('\n')
 
 
-def create_node(buffer, letter, pops):
-    global arguments_tree
-    inside = []
-    if(letter in 'RLKJIHGBEDA') and pops == 1:
-        inside.append(buffer[-2])
-    elif (letter in 'KJIHG') and pops == 3:
-        inside.append(buffer[-6])
-        inside.append(buffer[-4])
-        inside.append(buffer[-2])
+def verify_type_variable(name):
+    global variables
+    for var in variables:
+        if var.name == name:
+            # if var.type == 'arr':
+            #     return var.inside_type
+            return var.type
+    return None
 
-        combine = arguments_tree[-3:]
-        for i in range(3):
-            arguments_tree.pop(-1)
-        arguments_tree.append(combine)
-    elif letter == 'M':
-        inside.append(buffer[-16])
-        inside.append(buffer[-10])
-        inside.append(buffer[-4])
+def take_type(value):
+    elem = value[0]
+    if elem == 13:
+        elem = verify_type_variable(value[1])
+        elem = token_to_number(elem)
+        if elem == None:
+            print("Variable não declarada!")
+            elem = 5
+    return elem
 
+def isArray(name):
+    global variables
+    for var in variables:
+        if var.name == name:
+            if var.type == 'arr':
+                return var
+            else:
+                print('Não Array')
+                return None
+    print('Variavel não existe')
+    return None
 
+def mathComparisson(value1, value2):
+    if value1 == value2: #Tipos iguais
+        return True, value1
+    elif value1 == 22 and (value2 >= 35 and value2 <= 42): #Para a combinção numeric com outro tipo inteiro
+        return True, value2
+    elif value2 == 22 and (value1 >= 35 and value1 <= 42):
+        return True, value1
+    elif value1 == 25 and value2 in [43,44]: #Para a combinção real com outro tipo real
+        return True, value2
+    elif value2 == 25 and value1 in [43,44]:
+        return True, value1
+    elif value1 == 45 or value2 == 45: #Tipo generico
+        return True, 45
+    else:
+        return False, 45
+
+def boolComparisson(value1, value2):
+    if value1 == value2 and value1 == 5: #Dois valores do tipo boolean
+        return True, value1
+    elif value1 == 45 or value2 == 45:
+        return True, 45
+    else:
+        return False, 45
+
+def popArguments(arguments, value):
+    for i in range(value):
+        arguments.pop(-1)
 
 def reduction(f, buffer, matrix):
     global arguments
@@ -257,7 +306,7 @@ def reduction(f, buffer, matrix):
     aux = f[1]
     pops = int(f[2:])
     inside = []
-    if (aux == 'R' or aux == 'L' or aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G' or aux == 'B' or aux =='E' or aux == 'D' or aux == 'A') and pops == 1:
+    if aux in 'RLKJIHGBEDA' and pops == 1:
         # print(buffer[len(buffer)-2])
         # content = buffer[-2]
         # if aux == 'R' or aux == 'L' or aux == 'B':
@@ -265,23 +314,57 @@ def reduction(f, buffer, matrix):
         #         content = content.pop(-1)
         # inside.append(content)
         inside.append(buffer[-2])
-        arguments.append(inside[0])
-    elif (aux == 'K' or aux == 'J' or aux == 'I' or aux == 'H' or aux == 'G') and pops == 3:
+
+        # arguments.append(inside[0])
+    elif aux in 'KJIHG' and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
         combine = arguments_tree[-3:]
-        for i in range(3):
-            arguments_tree.pop(-1)
+        if aux == 'G':
+            left = take_type(combine[0])
+            right = take_type(combine[2])
+            valid, type_next = boolComparisson(right, left)
+            if not valid:
+                print("Erro nos tipos")
+            combine.insert(0,5)
+            # if not (values[0][0] in [5,13]):
+            #     print("Objection!")
+            #     print(combine[0][0])
+        # elif aux == 'H':
+        #     left = take_type(combine[0])
+        #     right = take_type(combine[2])
+        #     combine.insert(0,5)
+        elif aux in 'IJKH':
+            left = take_type(combine[0])
+            right = take_type(combine[2])
+            valid, type_next = mathComparisson(left, right)
+            if not valid:
+                print("Erro nos tipos!")
+            if aux == 'H':
+                combine.insert(0, 5)
+            else:
+                combine.insert(0, type_next)
+        popArguments(arguments_tree, 3)
         arguments_tree.append(combine)
-        #print(combine)
+        print(combine)
     elif aux == 'M':
         inside.append(buffer[-16])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
+        combine = arguments_tree[-1:]
+        expr = take_type(combine[0])
+        if not (expr in [5,45]):
+            print("Erro no if")
+        popArguments(arguments_tree, 1)
     elif aux == 'N':
         inside.append(buffer[-10])
         inside.append(buffer[-4])
+        combine = arguments_tree[-1:]
+        expr = take_type(combine[0])
+        if not (expr in [5,45]):
+            print("Erro no when")
+        popArguments(arguments_tree, 1)
     elif aux == 'O':
         inside.append(buffer[-18])
         inside.append(buffer[-14])
@@ -293,10 +376,11 @@ def reduction(f, buffer, matrix):
     elif aux == 'Q':
         inside.append(buffer[-6])
         inside.append(buffer[-2])
+
         combine = arguments_tree[-2:]
-        for i in range(2):
-            arguments_tree.pop(-1)
+        popArguments(arguments_tree, 2)
         arguments_tree.append(combine)
+
         v = Variable()
         if(combine[1][0] == 35):
             v.type = 'arr'
@@ -305,20 +389,51 @@ def reduction(f, buffer, matrix):
         else:
             v.type = combine[1][1]
         v.name = combine[0][1]
-        print(v)
         variables.append(v)
         print(variables)
     elif aux == 'T' and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
+
+        combine = arguments_tree[-2:]
+
+        if combine[1] != 24:
+            left = take_type(combine[0])
+            right = take_type(combine[1])
+            if left != right:
+                print("Erro em atribuição de valores")
+                print(combine)
+
+        popArguments(arguments_tree, 2)
+
+
     elif aux == 'T' and pops == 5:
         inside.append(buffer[-10])
         inside.append(buffer[-6])
         inside.append(buffer[-2])
+
+        combine = arguments_tree[-3:]
+        popArguments(arguments_tree, 3)
+
+        left = take_type(combine[0])
+        right = take_type(combine[1])
+        new_type = token_to_number(combine[2][1])
+
+        if not (left == new_type):
+            print("Erro em conversão de tipos")
+
     elif aux == 'U':
         inside.append(buffer[-8])
         inside.append(buffer[-4])
+        combine =  arguments_tree[-2:]
+        array = isArray(combine[0][1])
+        if(array != None):
+            combine.insert(0,array.inside_type)
+        else:
+            print("Erro, variavel não é um array")
+            combine.insert(0,45)
+        print(combine)
     elif aux == 'F' and pops == 2:
         inside.append(buffer[-4])
     elif aux == 'F' and pops == 3:
@@ -327,10 +442,11 @@ def reduction(f, buffer, matrix):
     elif aux == 'C':
         inside.append(buffer[-6])
         inside.append(buffer[-4])
-        combine = [35]
+
+        combine = [46]
         combine.extend(arguments_tree[-2:])
-        for i in range(2):
-            arguments_tree.pop(-1)
+        popArguments(arguments_tree, 2)
+
         arguments_tree.append(combine)
     elif aux == 'L' and pops == 2:
         inside.append(buffer[-2])
