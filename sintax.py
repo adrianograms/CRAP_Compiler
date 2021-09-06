@@ -307,20 +307,14 @@ def reduction(f, buffer, matrix):
     pops = int(f[2:])
     inside = []
     if aux in 'RLKJIHGBEDA' and pops == 1:
-        # print(buffer[len(buffer)-2])
-        # content = buffer[-2]
-        # if aux == 'R' or aux == 'L' or aux == 'B':
-        #     if type(content[-1]) == str:
-        #         content = content.pop(-1)
-        # inside.append(content)
         inside.append(buffer[-2])
 
-        # arguments.append(inside[0])
     elif aux in 'KJIHG' and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
         inside.append(buffer[-2])
         combine = arguments_tree[-3:]
+
         if aux == 'G':
             left = take_type(combine[0])
             right = take_type(combine[2])
@@ -328,13 +322,7 @@ def reduction(f, buffer, matrix):
             if not valid:
                 print("Erro nos tipos")
             combine.insert(0,5)
-            # if not (values[0][0] in [5,13]):
-            #     print("Objection!")
-            #     print(combine[0][0])
-        # elif aux == 'H':
-        #     left = take_type(combine[0])
-        #     right = take_type(combine[2])
-        #     combine.insert(0,5)
+
         elif aux in 'IJKH':
             left = take_type(combine[0])
             right = take_type(combine[2])
@@ -345,14 +333,17 @@ def reduction(f, buffer, matrix):
                 combine.insert(0, 5)
             else:
                 combine.insert(0, type_next)
+
         popArguments(arguments_tree, 3)
         arguments_tree.append(combine)
         print(combine)
+
     elif aux == 'M':
         inside.append(buffer[-16])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
         combine = arguments_tree[-1:]
+        print(combine)
         expr = take_type(combine[0])
         if not (expr in [5,45]):
             print("Erro no if")
@@ -361,7 +352,7 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-10])
         inside.append(buffer[-4])
         combine = arguments_tree[-1:]
-        expr = take_type(combine[0])
+        expr = take_type(combine)
         if not (expr in [5,45]):
             print("Erro no when")
         popArguments(arguments_tree, 1)
@@ -379,18 +370,23 @@ def reduction(f, buffer, matrix):
 
         combine = arguments_tree[-2:]
         popArguments(arguments_tree, 2)
-        arguments_tree.append(combine)
 
+        type_v = 45
         v = Variable()
-        if(combine[1][0] == 35):
+        if(combine[1][0] == 46):
             v.type = 'arr'
-            v.inside_type = combine[1][1][1]
+            v.inside_type = token_to_number(combine[1][1][1])
+            type_v = v.inside_type
             v.number = combine[1][2][1]
         else:
-            v.type = combine[1][1]
+            v.type = token_to_number(combine[1][1])
+            type_v = v.type
         v.name = combine[0][1]
         variables.append(v)
-        print(variables)
+
+        combine.insert(0,type_v)
+        arguments_tree.append(combine)
+        #print(variables)
     elif aux == 'T' and pops == 3:
         inside.append(buffer[-6])
         inside.append(buffer[-4])
@@ -398,15 +394,13 @@ def reduction(f, buffer, matrix):
 
         combine = arguments_tree[-2:]
 
-        if combine[1] != 24:
+        if combine[1][0] != 24:
             left = take_type(combine[0])
             right = take_type(combine[1])
             if left != right:
                 print("Erro em atribuição de valores")
-                print(combine)
 
         popArguments(arguments_tree, 2)
-
 
     elif aux == 'T' and pops == 5:
         inside.append(buffer[-10])
@@ -422,6 +416,9 @@ def reduction(f, buffer, matrix):
 
         if not (left == new_type):
             print("Erro em conversão de tipos")
+        else:
+            combine.insert(0, left)
+        arguments_tree.append(combine)
 
     elif aux == 'U':
         inside.append(buffer[-8])
@@ -457,6 +454,7 @@ def reduction(f, buffer, matrix):
         inside.append(buffer[-2])
     elif aux == 'Y':
         inside.append(buffer[-2])
+        popArguments(arguments_tree, 1)
     elif aux == 'V':
         inside.append(buffer[-2])
 
@@ -524,7 +522,7 @@ def sintax(tokens):
                     f_aux = codigo[1:]
                     reduction(f_aux, buffer, matrix)
             elif f[0] == 's':
-                valid_value = [5,6,11,13,17,19,20,22,25,26,27,28,32]
+                valid_value = [5,6,11,13,17,19,20,22,24,25,26,27,28,32]
                 if(line[0][0] in valid_value):
                     arguments_tree.append(line[0])
                 buffer.append(line[0])
