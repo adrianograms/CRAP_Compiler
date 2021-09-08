@@ -7,6 +7,11 @@ arguments_tree = []
 count_args = 0
 file_tree = open("tree.txt", "w")
 variables = []
+current_line = 0
+error_count_sematic = 0
+for_place = 0
+for_line = []
+
 
 class Variable:
     def __repr__(self):
@@ -145,7 +150,18 @@ def number_to_token(argument):
         31: "to",
         32: "type",
         33: "when",
-        34: "$"
+        34: "$",
+        35: "i8",
+        36: "i16",
+        37: "i32",
+        38: "i64",
+        39: "u8",
+        40: "u16",
+        41: "u32",
+        42: "u64",
+        43: "f32",
+        44: "f64",
+        45: "generic"
     }
     return switcher.get(argument,-1)
 
@@ -215,13 +231,14 @@ error_list = [ "ed", "ed", "erA1", "ep21", "erE1", "erE1", "erE1", "erE1", "erE1
 
 def print_error(line, line_aux, message):
     print(message, line_aux[0][2])
-    print("Token: ", end='')
-    if line[0][1] == '\n':
-        print("newline")
-    elif line[0][1] == "keyword":
-        print(number_to_token(line[0][0]))
-    else:
-        print(line[0][1])
+    if line != None:
+        print("Token: ", end='')
+        if line[0][1] == '\n':
+            print("newline")
+        elif line[0][1] == "keyword":
+            print(number_to_token(line[0][0]))
+        else:
+            print(line[0][1])
     print("Linha: ", end='')
     for token in line_aux:
         if token[1] == 'keyword':
@@ -249,13 +266,17 @@ def verify_type_variable(name):
             return var.type
     return None
 
-def take_type(value):
+def take_type(value, line):
     elem = value[0]
     if elem == 13:
         elem = verify_type_variable(value[1])
-        elem = token_to_number(elem)
+        #elem = token_to_number(elem)
+        if elem == 'arr':
+            #print("Variavel é um vetor, sendo preciso os '[]' para usa-la")
+            print_error(None, line,"Erro, variavel é um vetor, linha:")
+            elem = 45
         if elem == None:
-            print("Variable não declarada!")
+            print_error(None, line,"Erro, variavel não declarada na linha:")
             elem = 5
     return elem
 
@@ -272,6 +293,8 @@ def isArray(name):
     return None
 
 def mathComparisson(value1, value2):
+    if value1 == 5 or value2 == 5:
+        return False, 45
     if value1 == value2: #Tipos iguais
         return True, value1
     elif value1 == 22 and (value2 >= 35 and value2 <= 42): #Para a combinção numeric com outro tipo inteiro
@@ -299,10 +322,12 @@ def popArguments(arguments, value):
     for i in range(value):
         arguments.pop(-1)
 
-def reduction(f, buffer, matrix):
+def reduction(f, buffer, matrix, line):
     global arguments
     global arguments_tree
     global variables
+    global current_line
+    global error_count_sematic
     aux = f[1]
     pops = int(f[2:])
     inside = []
@@ -316,19 +341,27 @@ def reduction(f, buffer, matrix):
         combine = arguments_tree[-3:]
 
         if aux == 'G':
-            left = take_type(combine[0])
-            right = take_type(combine[2])
+            left = take_type(combine[0], line)
+            right = take_type(combine[2], line)
             valid, type_next = boolComparisson(right, left)
             if not valid:
-                print("Erro nos tipos")
+                print_error(None, line, "Erro: Tipos invalidos. Linha:")
+                error_count_sematic += 1
             combine.insert(0,5)
 
         elif aux in 'IJKH':
-            left = take_type(combine[0])
-            right = take_type(combine[2])
+            left = take_type(combine[0], line)
+            right = take_type(combine[2], line)
             valid, type_next = mathComparisson(left, right)
             if not valid:
-                print("Erro nos tipos!")
+                #print("Erro nos tipos!", current_line)
+                string_erro = ""
+                if left != right:
+                    string_erro = "Erro: Tipos %s e %s incompativeis, operando na mesma expressão. Linha:" % (number_to_token(left), number_to_token(right))
+                else:
+                    string_erro = "Erro: tipos invalidos na expressão. Linha:"
+                print_error(None, line, string_erro)
+                error_count_sematic += 1
             if aux == 'H':
                 combine.insert(0, 5)
             else:
@@ -336,31 +369,44 @@ def reduction(f, buffer, matrix):
 
         popArguments(arguments_tree, 3)
         arguments_tree.append(combine)
-        print(combine)
+        #print(combine)
 
     elif aux == 'M':
         inside.append(buffer[-16])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
         combine = arguments_tree[-1:]
-        print(combine)
-        expr = take_type(combine[0])
+        #print(combine)
+        expr = take_type(combine[0], line)
         if not (expr in [5,45]):
-            print("Erro no if")
+            print_error(None, line, "Erro: Expressão do if invalida. Linha:")
+            error_count_sematic += 1
         popArguments(arguments_tree, 1)
     elif aux == 'N':
         inside.append(buffer[-10])
         inside.append(buffer[-4])
         combine = arguments_tree[-1:]
-        expr = take_type(combine)
+        expr = take_type(combine[0], line)
         if not (expr in [5,45]):
-            print("Erro no when")
+            print_error(None, line, "Erro: Expressão do when invalida. Linha:")
+            error_count_sematic += 1
         popArguments(arguments_tree, 1)
     elif aux == 'O':
         inside.append(buffer[-18])
         inside.append(buffer[-14])
         inside.append(buffer[-10])
         inside.append(buffer[-4])
+
+        combine = arguments_tree[-3:]
+        popArguments(arguments_tree, 3)
+
+        type_i = take_type(combine[0], line)
+        if not (type_i >= 35 and type_i <= 42):
+            global for_line
+            print_error(None, for_line, "Erro: Variavel invalida no laço for. Linha:")
+            error_count_sematic += 1
+
+
     elif aux == 'P':
         inside.append(buffer[-10])
         inside.append(buffer[-4])
@@ -372,6 +418,11 @@ def reduction(f, buffer, matrix):
         popArguments(arguments_tree, 2)
 
         type_v = 45
+        if verify_type_variable(combine[0][1]) != None:
+            print_error(None, line, "Erro: Variavel já declarada. Linha:")
+            error_count_sematic += 1
+
+        #print(combine)
         v = Variable()
         if(combine[1][0] == 46):
             v.type = 'arr'
@@ -395,10 +446,14 @@ def reduction(f, buffer, matrix):
         combine = arguments_tree[-2:]
 
         if combine[1][0] != 24:
-            left = take_type(combine[0])
-            right = take_type(combine[1])
-            if left != right:
-                print("Erro em atribuição de valores")
+            left = take_type(combine[0], line)
+            right = take_type(combine[1], line)
+            valid, type_next = mathComparisson(left, right)
+            if not valid:
+                string = "Erro na atribuição de valor na linha:"
+                print_error(None, line, "Erro: Atribuição invalida. Linha:")
+                error_count_sematic += 1
+            #print(type_next)
 
         popArguments(arguments_tree, 2)
 
@@ -410,15 +465,16 @@ def reduction(f, buffer, matrix):
         combine = arguments_tree[-3:]
         popArguments(arguments_tree, 3)
 
-        left = take_type(combine[0])
-        right = take_type(combine[1])
+        left = take_type(combine[0], line)
+        right = take_type(combine[1], line)
         new_type = token_to_number(combine[2][1])
 
         if not (left == new_type):
-            print("Erro em conversão de tipos")
+            print_error(None, line, "Erro: Conversão de tipos invalida. Linha:")
+            error_count_sematic += 1
         else:
             combine.insert(0, left)
-        arguments_tree.append(combine)
+        #arguments_tree.append(combine)
 
     elif aux == 'U':
         inside.append(buffer[-8])
@@ -428,9 +484,17 @@ def reduction(f, buffer, matrix):
         if(array != None):
             combine.insert(0,array.inside_type)
         else:
-            print("Erro, variavel não é um array")
+            print_error(None, line, "Erro. Variavel não é um array. Linha:")
+            error_count_sematic += 1
             combine.insert(0,45)
-        print(combine)
+
+        type_inside = take_type(combine[2], line)
+        if not ((type_inside >= 35 and type_inside <= 42) or type_inside == 22):
+            print_error(None, line, "Erro: indice do vetor não é inteiro. Linha:")
+
+        popArguments(arguments_tree, 2)
+        arguments_tree.append(combine)
+        #print(combine)
     elif aux == 'F' and pops == 2:
         inside.append(buffer[-4])
     elif aux == 'F' and pops == 3:
@@ -477,6 +541,9 @@ def reduction(f, buffer, matrix):
 
 def sintax(tokens):
     global arguments_tree
+    global current_line
+    global error_count_sematic
+    global for_line
     matrix = read_txt("tabela.txt")
     buffer = [0]
     #print(tokens)
@@ -508,6 +575,8 @@ def sintax(tokens):
                         print_section("Erros")
                     print_error(line, line_aux,
                         "Erro, token invalido na linha: ")
+                    if line[0][0] in [5,6,11,13,17,19,20,22,24,25,26,27,28,32]:
+                        arguments_tree.pop(-1)
                     line.pop(0)
                     error += 1
                 elif codigo[1] == 'p':
@@ -515,21 +584,26 @@ def sintax(tokens):
                         print_section("Erros")
                     aux = int(codigo[2:])
                     line.insert(0,[aux,number_to_token(aux),line_aux[0][2]])
+                    if line[0][0] in [5,6,11,13,17,19,20,22,24,25,26,27,28,32]:
+                        arguments_tree.append(line[0])
                     print_error(line, line_aux,
                         "Erro, ausensia de token na linha: ")
                     error += 1
                 elif codigo[1] == 'r':
                     f_aux = codigo[1:]
-                    reduction(f_aux, buffer, matrix)
+                    reduction(f_aux, buffer, matrix, line_aux)
             elif f[0] == 's':
                 valid_value = [5,6,11,13,17,19,20,22,24,25,26,27,28,32]
                 if(line[0][0] in valid_value):
                     arguments_tree.append(line[0])
+                    current_line = line[0][2]
+                if(line[0][0] == 12):
+                    for_line = line_aux
                 buffer.append(line[0])
                 line.pop(0)
                 buffer.append(int(f[1:]))
             elif f[0] == 'r' :
-                reduction(f, buffer, matrix)
+                reduction(f, buffer, matrix, line_aux)
             elif f[0] == 'a':
                 if error >= 1:
                     print_section("Falha na sintaxe da linguagem!")
@@ -537,11 +611,15 @@ def sintax(tokens):
                     global file_tree
                     #pprint(buffer)
                     #print(len(buffer))
-                    #creating_tree(buffer[-2],'Z')
+                    creating_tree(buffer[-2],'Z')
                     file_tree.close()
                     # pprint(buffer[-2])
                     #print(arguments_tree)
                     print_section("Sintaxe Correta!")
+                    if error_count_sematic > 0:
+                        print_section("Falha na Sematica!")
+                    else:
+                        print_section("Sucesso na Semantica!")
                 return
                     
         if error >= 5:
