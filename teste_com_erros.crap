@@ -1,15 +1,19 @@
 let teste as u64 = 30
 let i as u64 = 0
+i = i + 5 as u32
 let x as i32 = i as i32
-let a as bool = (i > teste) as bool
+let a as bool = (i > teste)
 i = i + teste as u64
 let b as [u64 3] = 10
+let b as f32 = 0.5
 let o as [f32 5] = 0.5
-i = teste + b[i+1] + 25/b[teste/i*2]
+i = teste + b[i+1] + 25/b[teste/i*2] + a as u32
 
 when a do
     teste = teste + 1 + b[0]
     let z as f32 = 150 + x as f32
+    let i as f64 = teste as f64
+    let y as f64 = (z + 5.0) + 1.5 as f64
     z = o[0] + o[z]
 end
 
@@ -22,11 +26,14 @@ if (i == 2 and z != 1.0)  and a or teste then
     i = i + 1
 else
     print teste
-    teste = i + teste
+    teste = i + teste[0]
     if (z >= o[i]) or i !=teste then
-        print z + o[teste]
+        print z + o[teste] 
         let string as [u8 2] = "if"
     else
         z = read
+        b = teste
+        z = o + 5.0
+        b[i] = b[o[i]] 
     end
 end

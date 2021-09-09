@@ -3,3 +3,13 @@ Para rodar: python main.py <nome_do_arquivo> <flags>
 <flags> -pl mostra os tokens e lexemas gerados pelo processador lexico
 
 Exemplo de execução: python main.py teste.CRAP -pl
+
+Dois arquivos foram diponibilizados para testes, o "teste_com_erros.crap",
+contendo diversos erros semanticos para a validação do analisador semantico.
+E o "teste_sem_erros.crap", com um codigo sem erros semanticos, tambem para a
+validação do analisador semantico.
+
+Depois de executar o codigo, caso não hajam erros sintaticos, será gerado um
+arquivo chamado "tree.txt", contendo a arvore AST gerada em linguagem DOT, para
+a visualização no site http://viz-js.com/ basta copiar e colar o conteudo do arquivo
+para a pagina.
